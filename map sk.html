@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Mapbox with Sketchfab 3D Button</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #sketchfab-embed {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #sketchfab-embed-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 0;
+        z-index: 1;
+      }
+      #toggle-sketchfab-button {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  z-index: 2;
+  background-color: #0099ff;
+  color: #fff;
+  border: none;
+  border-radius: 20%;
+  width: 60px;
+  height: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+
+#toggle-sketchfab-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+}
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <button id="toggle-sketchfab-button" onclick="toggleSketchfab()">3D</button>
+    <div id="sketchfab-embed-wrapper">
+      <iframe id="sketchfab-embed" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/a34eebc7966c4589934afb2334e182b6/embed?autostart=1&annotations_visible=1&annotation_cycle=10&transparent=1&ui_inspector=0&ui_watermark_link=0&ui_watermark=0&ui_help=0&ui_vr=0&ui_theme=dark&interactive=false&camera=0,-100,500,74,-20,0"></iframe>
+    </div>
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1IjoiZ2hhc3NhbmdoYW5lbSIsImEiOiJjbGVrbGpwZHQwbWt6M3JucHlweXIwYnM4In0.54_EfTPnnFP-6y7JXNmdRw';
+
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/light-v11',
+        zoom: 16,
+        center: [-74.012014, 40.707012],
+        pitch: 0,
+        bearing: -45,
+      });
+
+      var sketchfabEmbed = document.getElementById("sketchfab-embed");
+
+      function toggleSketchfab() {
+        var sketchfabWrapper = document.getElementById("sketchfab-embed-wrapper");
+        if (sketchfabEmbed.style.display === "none") {
+          sketchfabEmbed.style.display = "block";
+          sketchfabWrapper.style.height = "100%";
+        } else {
+          sketchfabEmbed.style.display = "none";
+          sketchfabWrapper.style.height = "0";
+        }
+      }
+
+      function updateSketchfabCamera() {
+        if (sketchfabEmbed.style.display === "block") {
+var camera = sketchfabEmbed.contentWindow.SketchfabViewerAPI.getCameraLookAt();
+          var pitch = camera.tilt;
+          var zoom = camera.distance;
+          map.setPitch(pitch);
+          map.setZoom(zoom);
+
+          // bearing to match Sketchfab model rotation
+          var rotation = sketchfabEmbed.contentWindow.SketchfabViewerAPI.getCurrentRotation();
+          map.setBearing(-rotation.yaw - 45);
+        }
+      }
+
+      map.on("move", updateSketchfabCamera);
+      map.on("rotate", updateSketchfabCamera);
+      map.on("pitch", updateSketchfabCamera);
+    </script>
+  </body>
+</html>
